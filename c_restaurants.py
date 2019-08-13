@@ -10,10 +10,10 @@ DBSession = sessionmaker(bind=engine)
 session = DBSession()
 
 restaurants = [Restaurant(name = "Panda Garden"),
-            Restaurant(name = "Tonys Bistro"),
-            Restaurant(name = "Andala"),
-            Restaurant(name = "Autie Anns Diner"),
-            Restaurant(name = "Cocina Y Amor")]
+               Restaurant(name = "Tonys Bistro"),
+               Restaurant(name = "Andala"),
+               Restaurant(name = "Autie Anns Diner"),
+               Restaurant(name = "Cocina Y Amor")]
 
 for restaurant in restaurants:
     session.add(restaurant)
