@@ -1,10 +1,11 @@
+import os 
 from flask import Flask, jsonify, request
 from flask_sqlalchemy import SQLAlchemy 
 from sqlalchemy import Column, Integer, String, Float 
 from flask_marshmallow import Marshmallow
 from flask_jwt_extended import JWTManager, jwt_required, create_access_token
 from flask_mail import Mail, Message
-import os 
+from db_models import *
 
 
 app = Flask(__name__)
@@ -76,16 +77,6 @@ def hello_world():
     return 'Hello World!'
 
 
-@app.route('/super_simple')
-def super_simple():
-    return jsonify(message='Hello from the planetary api, oh yeah')
-
-
-@app.route('/not_found')
-def not_found():
-    return jsonify(message='That resource was not found'), 404
-
-
 @app.route('/parameters')
 def parameters():
     name = request.args.get('name')
@@ -115,6 +106,7 @@ def planets():
 def register():
     email = request.form['email']
     test = User.query.filter_by(email=email).first()
+
     if test:
         return jsonify(message='That email already exists'), 409
     else:
@@ -137,6 +129,7 @@ def login():
         password = request.form['password']
     
     test = User.query.filter_by(email=email, password=password).first()
+
     if test:
         access_token = create_access_token(identity=email)
         return jsonify(message='Login succeeded', access_token=access_token)
@@ -147,6 +140,7 @@ def login():
 @app.route('/retrieve_password/<string:email>', methods=['GET'])
 def retrieve_password(email: str):
     user = User.query.filter_by(email=email).first()
+
     if user:
         msg = Message("your planetary api password is " + user.password,
                 sender="admin@planetary-api.com",
@@ -160,6 +154,7 @@ def retrieve_password(email: str):
 @app.route('/planet_details/<int:planet_id>', methods=['GET'])
 def planet_details(planet_id: int):
     planet = Planet.query.filter_by(planet_id=planet_id).first()
+
     if planet:
         result = planet_schema.dump(planet)
         return jsonify(result)
@@ -172,6 +167,7 @@ def planet_details(planet_id: int):
 def add_planet():
     planet_name = request.form['planet_name']
     test = Planet.query.filter_by(planet_name=planet_name).first()
+
     if test:
         return jsonify(message='There is already a planet by that name'), 409
     else:
@@ -198,6 +194,7 @@ def add_planet():
 def update_planet():
     planet_id = int(request.form['planet_id'])
     planet = Planet.query.filter_by(planet_id=planet_id).first()
+
     if planet:
         planet.planet_name = request.form['planet_name']
         planet.planet_type = request.form['planet_type']
@@ -215,6 +212,7 @@ def update_planet():
 @jwt_required
 def delete_planet(planet_id: int):
     planet = Planet.query.filter_by(planet_id=planet_id).first()
+
     if planet:
         db.session.delete(planet)
         db.session.commit()
@@ -223,42 +221,10 @@ def delete_planet(planet_id: int):
         return jsonify(message='Planet does not exist'), 404
 
 
-
-# database models
-class User(db.Model):
-    __tablename__ = 'users'
-    id = Column(Integer, primary_key=True)
-    first_name = Column(String)
-    last_name = Column(String)
-    email = Column(String, unique=True)
-    password = Column(String)
-
-class Planet(db.Model):
-    __tablename__ = 'planets'
-    planet_id = Column(Integer, primary_key=True)
-    planet_name = Column(String)
-    planet_type = Column(String)
-    home_star = Column(String)
-    mass = Column(Float)
-    radius = Column(Float)
-    distance = Column(Float)
-
-
-class UserSchema(ma.Schema):
-    class Meta:
-        fields = ('id','first_name','last_name','email','password')
-
-
-class PlanetSchema(ma.Schema):
-    class Meta:
-        fields = ('planet_id','planet_name','planet_type','home_star','mass','radius','distance')
-
-
 user_schema = UserSchema()
 users_schema = UserSchema(many=True)
 planet_schema = PlanetSchema()
 planets_schema = PlanetSchema(many=True)
-
 
 
 if __name__ == '__main__':
