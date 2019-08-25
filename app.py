@@ -1,11 +1,9 @@
 import os 
 from flask import Flask, jsonify, request
-from flask_sqlalchemy import SQLAlchemy 
-from sqlalchemy import Column, Integer, String, Float 
-from flask_marshmallow import Marshmallow
+from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager, jwt_required, create_access_token
 from flask_mail import Mail, Message
-from db_models import *
+from db_models import User, UserSchema, Planet, PlanetSchema
 
 
 app = Flask(__name__)
@@ -18,7 +16,6 @@ app.config['MAIL_USERNAME'] = os.environ['MAIL_USERNAME']
 app.config['MAIL_PASSWORD'] = os.environ['MAIL_PASSWORD']
 
 db = SQLAlchemy(app)
-ma = Marshmallow(app)
 jwt = JWTManager(app)
 mail = Mail(app)
 
